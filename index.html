@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>German A1-A2 Advanced Quiz</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f6fb;color:#17233c;margin:0}
+.container{max-width:850px;margin:auto;padding:22px}
+header{background:#173f73;color:#fff;padding:24px;border-radius:15px;text-align:center}
+.card{background:#fff;padding:24px;margin-top:20px;border-radius:15px;box-shadow:0 2px 12px #0001}
+.progress{font-weight:bold;color:#1769aa;margin-bottom:14px}
+.question{font-size:21px;font-weight:bold;line-height:1.55}
+.option{display:block;padding:14px;margin:10px 0;border:2px solid #d5dde7;border-radius:10px;cursor:pointer;font-size:17px;line-height:1.45}
+.option:hover{background:#f0f6ff}
+.option.correct{background:#e3f7e9;border-color:#35a35a}
+.option.wrong{background:#ffe6e6;border-color:#d34c4c}
+.feedback{display:none;padding:15px;border-radius:10px;margin-top:15px;font-size:17px;line-height:1.5}
+.feedback.correct{display:block;background:#e3f7e9;color:#176b35}
+.feedback.wrong{display:block;background:#ffe6e6;color:#9d2222}
+button{background:#1769aa;color:#fff;border:0;padding:14px 28px;border-radius:10px;font-size:17px;cursor:pointer;margin-top:16px}
+button:disabled{opacity:.55;cursor:not-allowed}
+#next{display:none}
+#final{display:none;text-align:center}
+.score{font-size:28px;font-weight:bold}
+.note{color:#56677c;font-size:14px}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Deutsch A1–A2</h1>
+<h2>Fortgeschrittener Grammatik-Quiz</h2>
+<p>Temporale Adverbien · Tageszeiten · Akkusativ · Verpackungen</p>
+</header>
+
+<div class="card" id="quizCard">
+<div class="progress" id="progress"></div>
+<div class="question" id="question"></div>
+<div id="options"></div>
+<div id="feedback" class="feedback"></div>
+<button id="next" onclick="nextQuestion()">Nächste Frage</button>
+<p class="note">Jede Frage wird einzeln angezeigt. Die Lösung wird sofort nach der Auswahl geprüft.</p>
+</div>
+
+<div class="card" id="final">
+<h2>Quiz beendet</h2>
+<div class="score" id="score"></div>
+<p id="message"></p>
+<button onclick="restart()">Nochmal versuchen</button>
+</div>
+</div>
+
+<script>
+const questions=[
+{q:"______ stehe ich um sieben Uhr auf, dusche mich und frühstücke, bevor ich zur Arbeit fahre.",
+o:["Danach","Zuerst","Zum Schluss","Außerdem"],a:1,e:"كلمة „zuerst“ تعني «أولًا»، ولذلك تُستخدم للحديث عن أول خطوة في ترتيب الأحداث."},
+{q:"Ich stehe zuerst auf und dusche mich; ______ ziehe ich mich an und gehe in die Küche, um zu frühstücken.",
+o:["danach","morgens","zum Schluss","außerdem"],a:0,e:"كلمة „danach“ تعني «بعد ذلك»، وتُستخدم للحدث الذي يأتي بعد الحدث السابق."},
+{q:"Nachdem ich gefrühstückt habe, gehe ich zur Arbeit; ______ helfe ich dort den Patienten und erledige meine Aufgaben.",
+o:["morgen","anschließend","am Morgen","zuerst"],a:1,e:"كلمة „anschließend“ تعني «بعد ذلك/مباشرة بعده»، وتوضح أن الحدث التالي يأتي بعد الحدث السابق."},
+{q:"Ich arbeite den ganzen Vormittag und helfe den Patienten; ______ kaufe ich auf dem Heimweg noch Lebensmittel für meine Familie.",
+o:["später","zuerst","morgens","zum Schluss"],a:0,e:"كلمة „später“ تعني «لاحقًا»، أي في وقت يأتي بعد الوقت الحالي أو بعد حدث سابق."},
+{q:"Nach der Arbeit kaufe ich Lebensmittel und koche das Abendessen; ______ esse ich mit meiner Familie und gehe schlafen.",
+o:["außerdem","danach","morgen","zuerst"],a:1,e:"كلمة „danach“ تُستخدم لبيان الحدث الذي يحدث بعد الطهي في تسلسل الأحداث."},
+{q:"Ich arbeite tagsüber im Krankenhaus und ______ lerne ich am Abend noch Deutsch, bevor ich ins Bett gehe.",
+o:["außerdem","zum Schluss","danach","am Morgen"],a:0,e:"كلمة „außerdem“ تُستخدم لإضافة معلومة أو فعل إضافي إلى الكلام السابق."},
+{q:"______ stehe ich normalerweise um sechs Uhr auf, aber am Wochenende schlafe ich etwas länger.",
+o:["Morgen","Morgens","Am Morgen","Danach"],a:1,e:"„morgens“ تعني «في الصباح عادةً/كل صباح»، ولذلك تناسب الحديث عن عادة متكررة."},
+{q:"______ stehe ich um sieben Uhr auf und fahre danach direkt zur Arbeit.",
+o:["Morgen","Morgens","Am Morgen","Später"],a:2,e:"„am Morgen“ تعني «في الصباح» وتشير إلى فترة زمنية محددة من اليوم."},
+{q:"______ habe ich einen wichtigen Termin bei der Arbeit, deshalb muss ich früh aufstehen und pünktlich losfahren.",
+o:["Morgen","Morgens","Am Morgen","Danach"],a:0,e:"„morgen“ تعني «غدًا»، أي اليوم الذي يلي اليوم الحالي."},
+{q:"Ich habe Durst und möchte im Supermarkt ______ Wasser kaufen, weil ich nach der Arbeit noch lange unterwegs bin.",
+o:["einen Flasche","eine Flasche","ein Flasche","einen Flaschen"],a:1,e:"„die Flasche“ مؤنث، وفي Akkusativ تصبح „eine Flasche“."},
+{q:"Nach dem Frühstück möchte ich im Café ______ Joghurt bestellen, weil ich heute noch nichts gegessen habe.",
+o:["einen Becher","eine Becher","ein Becher","einen Bechers"],a:0,e:"„der Becher“ مذكر، ولذلك يتغير „ein“ في Akkusativ إلى „einen“: „einen Becher“."},
+{q:"Für das Abendessen möchte ich im Supermarkt ______ Marmelade kaufen, weil meine Familie sie gern zum Frühstück isst.",
+o:["einen Glas","eine Glas","ein Glas","einen Gläser"],a:2,e:"„das Glas“ محايد، ولذلك يبقى „ein“ في Akkusativ: „ein Glas“."},
+{q:"Wir haben zu Hause kein Bier mehr, deshalb möchte ich nach der Arbeit ______ Bier kaufen und danach direkt nach Hause gehen.",
+o:["eine Kasten","einen Kasten","ein Kasten","einen Kastenes"],a:1,e:"„der Kasten“ مذكر، ولذلك نستخدم „einen Kasten“ في Akkusativ."},
+{q:"Ich habe heute Morgen kein Frühstück gegessen, deshalb nehme ich später ______ Chips mit zur Arbeit.",
+o:["ein Tüte","einen Tüte","eine Tüte","einen Tüten"],a:2,e:"„die Tüte“ مؤنث، ولذلك نستخدم „eine Tüte“ في Akkusativ."},
+{q:"Ich brauche Reis für das Abendessen und möchte deshalb im Supermarkt ______ Reis kaufen, bevor ich nach Hause fahre.",
+o:["eine Packung","einen Packung","ein Packung","eine Packungen"],a:0,e:"„die Packung“ مؤنث، ولذلك نستخدم „eine Packung“ في Akkusativ."},
+{q:"Welche Variante ist grammatisch korrekt?",
+o:["Zuerst stehe ich auf, danach dusche ich mich, anschließend frühstücke ich und zum Schluss gehe ich zur Arbeit.","Zuerst ich stehe auf, danach mich dusche ich, anschließend ich frühstücke und zum Schluss zur Arbeit gehe ich.","Zuerst stehe auf ich, danach dusche mich ich, anschließend frühstücke ich und zum Schluss gehe zur Arbeit ich.","Zuerst aufstehe ich, danach ich dusche mich, anschließend ich frühstücke und zum Schluss ich gehe Arbeit."],a:0,e:"عندما تبدأ الجملة بظرف مثل „Zuerst“، يأتي الفعل المصرف في المركز الثاني، ثم يأتي الفاعل."},
+{q:"Welche Aussage verwendet „außerdem“ passend?",
+o:["Zuerst stehe ich auf; außerdem dusche ich mich, danach gehe ich schlafen.","Ich helfe den Patienten und erledige meine Aufgaben; außerdem lerne ich in meiner Freizeit Deutsch.","Morgen ist heute; außerdem war gestern morgen.","Zum Schluss außerdem gehe ich zuerst zur Arbeit."],a:1,e:"„außerdem“ لا ترتب الأحداث، بل تضيف معلومة أو فعلًا إضافيًا مرتبطًا بما سبق."},
+{q:"Welche Kombination passt am besten? „______ gehe ich zur Arbeit. ______ kaufe ich Lebensmittel, und ______ koche ich für meine Familie.“",
+o:["Zuerst / Später / zum Schluss","Zum Schluss / zuerst / danach","Morgens / morgen / außerdem","Danach / zuerst / am Morgen"],a:0,e:"الترتيب الصحيح للأحداث هو: أولًا → لاحقًا → في النهاية، لذلك الاختيار الأول هو الأنسب."}
+];
+
+let current=0,score=0,answered=false;
+const qEl=document.getElementById("question"), oEl=document.getElementById("options");
+const fEl=document.getElementById("feedback"), nEl=document.getElementById("next");
+
+function render(){
+answered=false;
+const x=questions[current];
+document.getElementById("progress").textContent=`Frage ${current+1} von ${questions.length}`;
+qEl.textContent=x.q;oEl.innerHTML="";fEl.className="feedback";fEl.textContent="";
+nEl.style.display="none";
+x.o.forEach((text,i)=>{
+ const label=document.createElement("label");
+ label.className="option";
+ label.textContent=text;
+ label.onclick=()=>answer(i,label);
+ oEl.appendChild(label);
+});
+}
+function answer(i,label){
+ if(answered)return;
+ answered=true;
+ const x=questions[current];
+ [...oEl.children].forEach(el=>el.onclick=null);
+ if(i===x.a){
+  score++;label.classList.add("correct");
+  fEl.className="feedback correct";
+  fEl.textContent="✓ Richtig! "+x.e;
+ }else{
+  label.classList.add("wrong");
+  oEl.children[x.a].classList.add("correct");
+  fEl.className="feedback wrong";
+  fEl.textContent="✗ Falsch. "+x.e;
+ }
+ nEl.textContent=current===questions.length-1?"Ergebnis anzeigen":"Nächste Frage";
+ nEl.style.display="inline-block";
+}
+function nextQuestion(){
+ if(!answered)return;
+ current++;
+ if(current<questions.length)render();
+ else{
+  document.getElementById("quizCard").style.display="none";
+  document.getElementById("final").style.display="block";
+  const pct=Math.round(score/questions.length*100);
+  document.getElementById("score").textContent=`${score} / ${questions.length} · ${pct}%`;
+  document.getElementById("message").textContent=pct>=90?"Ausgezeichnet!":pct>=75?"Sehr gut!":pct>=60?"Gut gemacht!":"Weiter üben und noch einmal versuchen!";
+ }
+}
+function restart(){
+ current=0;score=0;
+ document.getElementById("final").style.display="none";
+ document.getElementById("quizCard").style.display="block";
+ render();
+}
+render();
+</script>
+</body>
+</html>
